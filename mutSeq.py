@@ -1,6 +1,8 @@
 from Bio import SeqIO
 import numpy as np
 import argparse
+from scipy.linalg import fractional_matrix_power
+
 
 
 
@@ -73,10 +75,11 @@ def calculate_divergence(prob_matrix):
     divergence_value = divergence_value/ np.sum(prob_matrix)
     return divergence_value
 
-def rescale_spectrum(prob_matrix, target_divergence):
-    current_divergence = calculate_divergence(prob_matrix)
-    rescale = target_divergence / current_divergence
-    rescaled_matrix = prob_matrix * rescale
+def rescale_spectrum(prob_matrix, t):
+    #current_divergence = calculate_divergence(prob_matrix)
+    #rescale = target_divergence / current_divergence
+    #rescaled_matrix = prob_matrix * rescale
+    rescaled_matrix = fractional_matrix_power(prob_matrix, t) #t is time
 
     return rescaled_matrix
 
