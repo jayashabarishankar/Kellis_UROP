@@ -1,0 +1,84 @@
+package main 
+func SimulateWithIndels(fastaFile string, mutationMatrix [][]float64, propIndel float64, lambda float64, gcContent float64, transitionBias float64, vcfOutFile string, qName string) []fasta.Fasta {
+
+	for inputPos < len(records[0].Seq) {
+		currRand = rand.Float64()
+
+		// Check if there will be a mutation at the current position based on the mutation matrix
+		if currRand < mutationMatrix[inputPos][inputPos] {
+			// Select mutation type based on the mutation matrix
+			mutationType := selectMutationType(mutationMatrix, inputPos, inputPos)
+
+			switch mutationType {
+			case "substitution":
+				
+				answer[0].Seq[outputPos] = records[0].Seq[inputPos]
+				if transitionBias != 1 {
+					answer[1].Seq[outputPos] = changeBaseTransitionBias(records[0].Seq[inputPos], transitionBias)
+				} else {
+					answer[1].Seq[outputPos] = changeBase(records[0].Seq[inputPos])
+				}
+				currRef = []dna.Base{records[0].Seq[inputPos]}
+				currAlt = []dna.Base{answer[1].Seq[outputPos]}
+				if vcfOutFile != "" {
+					_, err = fmt.Fprintf(vcfOut, "%s\t%d\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t\n", records[0].Name, inputPos+1, ".", dna.BasesToString(currRef), dna.BasesToString(currAlt), "100", "PASS", ".", ".")
+				}
+				outputPos++
+				emptyRoomInBuffer--
+				if emptyRoomInBuffer < 1 {
+					answer[0].Seq = append(answer[0].Seq, newBufferRoom...)
+					answer[1].Seq = append(answer[1].Seq, newBufferRoom...)
+					emptyRoomInBuffer += bufferSize
+				}
+
+			case "deletion":
+				
+				deletionLength := indelLength(lambda)
+				for i := 0; i < deletionLength; i++ {
+					answer[0].Seq[outputPos] = dna.Gap
+					answer[1].Seq[outputPos] = dna.Gap
+					outputPos++
+					emptyRoomInBuffer--
+					if emptyRoomInBuffer < 1 {
+						answer[0].Seq = append(answer[0].Seq, newBufferRoom...)
+						answer[1].Seq = append(answer[1].Seq, newBufferRoom...)
+						emptyRoomInBuffer += bufferSize
+					}
+				}
+
+			case "insertion":
+				
+				insertionLength := indelLength(lambda)
+				for i := 0; i < insertionLength; i++ {
+					answer[0].Seq[outputPos] = dna.Gap
+					answer[1].Seq[outputPos] = ChooseRandomBase(gcContent)
+					outputPos++
+					emptyRoomInBuffer--
+					if emptyRoomInBuffer < 1 {
+						answer[0].Seq = append(answer[0].Seq, newBufferRoom...)
+						answer[1].Seq = append(answer[1].Seq, newBufferRoom...)
+						emptyRoomInBuffer += bufferSize
+					}
+				}
+			}
+		} else {
+			
+			answer[0].Seq[outputPos] = records[0].Seq[inputPos]
+			answer[1].Seq[outputPos] = records[0].Seq[inputPos]
+			outputPos++
+			emptyRoomInBuffer--
+			if emptyRoomInBuffer < 1 {
+				answer[0].Seq = append(answer[0].Seq, newBufferRoom...)
+				answer[1].Seq = append(answer[1].Seq, newBufferRoom...)
+				emptyRoomInBuffer += bufferSize
+			}
+		}
+
+		
+		inputPos++
+	}
+
+	
+
+	return answer
+}
